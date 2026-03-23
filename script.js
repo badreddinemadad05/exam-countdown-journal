@@ -162,7 +162,10 @@ function updateTopSummary() {
   const doneCount = entries.filter((entry) => entry.done).length;
   const total = DAYS.length;
   const remaining = total - doneCount;
-  const remainingWeeks = Math.ceil(remaining / 7);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.ceil((EXAM_DATE - today) / (1000 * 60 * 60 * 24));
+  const remainingWeeks = diff > 0 ? Math.ceil(diff / 7) : 0;
   const percent = Math.round((doneCount / total) * 100);
 
   doneCountEl.textContent = doneCount;
