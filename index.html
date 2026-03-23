@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mon compte à rebours examens</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div class="hero-text">
+        <p class="eyebrow">Préparation examens</p>
+        <h1>Du 23.03.2026 au 31.05.2026</h1>
+        <p class="subtitle">
+          Chaque journée compte. Coche ta journée, note tes progrès, tes erreurs et ce que tu dois améliorer.
+        </p>
+      </div>
+
+      <div class="countdown-card">
+        <p class="countdown-label">Avant le début des examens</p>
+        <div class="countdown-number" id="daysUntilExam">--</div>
+        <p class="countdown-note">jours restants avant le 01.06.2026</p>
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <p class="progress-text" id="progressText">0% complété</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="top-stats">
+      <div class="stat-box">
+        <span class="stat-label">Jours terminés</span>
+        <strong id="doneCount">0</strong>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Jours restants</span>
+        <strong id="remainingCount">0</strong>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Période totale</span>
+        <strong>70 jours</strong>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Chercher une date, un jour ou un mot dans tes notes..." />
+      </div>
+      <div class="filter-box">
+        <button class="filter-btn active" data-filter="all">Tout</button>
+        <button class="filter-btn" data-filter="done">Terminés</button>
+        <button class="filter-btn" data-filter="pending">À faire</button>
+      </div>
+    </section>
+
+    <main>
+      <section class="calendar-section">
+        <div class="section-header">
+          <h2>Calendrier de progression</h2>
+          <p>Chaque carte représente une journée jusqu'à tes examens.</p>
+        </div>
+        <div class="days-grid" id="daysGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <template id="dayCardTemplate">
+    <article class="day-card">
+      <div class="day-card-top">
+        <div>
+          <p class="date-badge"></p>
+          <h3 class="date-title"></h3>
+        </div>
+        <label class="check-wrapper">
+          <input type="checkbox" class="done-checkbox" />
+          <span>Terminé</span>
+        </label>
+      </div>
+
+      <div class="count-inline"></div>
+
+      <div class="field-group">
+        <label>Ce que j'ai fait aujourd'hui</label>
+        <textarea class="note-general" rows="4" placeholder="Écris ici ce que tu as vraiment fait aujourd'hui..."></textarea>
+      </div>
+
+      <div class="field-group">
+        <label>Ce que j'ai fait de bien</label>
+        <textarea class="note-good" rows="3" placeholder="Exemple : j'ai bien révisé, j'ai gardé ma concentration..."></textarea>
+      </div>
+
+      <div class="field-group">
+        <label>Ce que j'ai fait de mal</label>
+        <textarea class="note-bad" rows="3" placeholder="Exemple : j'ai perdu du temps, je me suis déconcentré..."></textarea>
+      </div>
+
+      <div class="field-group">
+        <label>Ce que je dois améliorer</label>
+        <textarea class="note-improve" rows="3" placeholder="Exemple : mieux organiser ma journée, faire moins de pauses..."></textarea>
+      </div>
+
+      <div class="card-footer">
+        <span class="save-status">Sauvegarde automatique</span>
+        <button class="clear-btn" type="button">Vider</button>
+      </div>
+    </article>
+  </template>
+
+  <script>
+    const DAYS = [
+  {
+    "iso": "2026-03-23",
+    "label": "23/03/2026",
+    "weekday": "Lundi",
+    "month": "Mars",
+    "day": 23,
+    "days_left": 70
+  },
+  {
+    "iso": "2026-03-24",
+    "label": "24/03/2026",
+    "weekday": "Mardi",
+    "month": "Mars",
+    "day": 24,
+    "days_left": 69
+  },
+  {
+    "iso": "2026-03-25",
+    "label": "25/03/2026",
+    "weekday": "Mercredi",
+    "month": "Mars",
+    "day": 25,
+    "days_left": 68
+  },
+  {
+    "iso": "2026-03-26",
+    "label": "26/03/2026",
+    "weekday": "Jeudi",
+    "month": "Mars",
+    "day": 26,
+    "days_left": 67
+  },
+  {
+    "iso": "2026-03-27",
+    "label": "27/03/2026",
+    "weekday": "Vendredi",
+    "month": "Mars",
+    "day": 27,
+    "days_left": 66
+  },
+  {
+    "iso": "2026-03-28",
+    "label": "28/03/2026",
+    "weekday": "Samedi",
+    "month": "Mars",
+    "day": 28,
+    "days_left": 65
+  },
+  {
+    "iso": "2026-03-29",
+    "label": "29/03/2026",
+    "weekday": "Dimanche",
+    "month": "Mars",
+    "day": 29,
+    "days_left": 64
+  },
+  {
+    "iso": "2026-03-30",
+    "label": "30/03/2026",
+    "weekday": "Lundi",
+    "month": "Mars",
+    "day": 30,
+    "days_left": 63
+  },
+  {
+    "iso": "2026-03-31",
+    "label": "31/03/2026",
+    "weekday": "Mardi",
+    "month": "Mars",
+    "day": 31,
+    "days_left": 62
+  },
+  {
+    "iso": "2026-04-01",
+    "label": "01/04/2026",
+    "weekday": "Mercredi",
+    "month": "Avril",
+    "day": 1,
+    "days_left": 61
+  },
+  {
+    "iso": "2026-04-02",
+    "label": "02/04/2026",
+    "weekday": "Jeudi",
+    "month": "Avril",
+    "day": 2,
+    "days_left": 60
+  },
+  {
+    "iso": "2026-04-03",
+    "label": "03/04/2026",
+    "weekday": "Vendredi",
+    "month": "Avril",
+    "day": 3,
+    "days_left": 59
+  },
+  {
+    "iso": "2026-04-04",
+    "label": "04/04/2026",
+    "weekday": "Samedi",
+    "month": "Avril",
+    "day": 4,
+    "days_left": 58
+  },
+  {
+    "iso": "2026-04-05",
+    "label": "05/04/2026",
+    "weekday": "Dimanche",
+    "month": "Avril",
+    "day": 5,
+    "days_left": 57
+  },
+  {
+    "iso": "2026-04-06",
+    "label": "06/04/2026",
+    "weekday": "Lundi",
+    "month": "Avril",
+    "day": 6,
+    "days_left": 56
+  },
+  {
+    "iso": "2026-04-07",
+    "label": "07/04/2026",
+    "weekday": "Mardi",
+    "month": "Avril",
+    "day": 7,
+    "days_left": 55
+  },
+  {
+    "iso": "2026-04-08",
+    "label": "08/04/2026",
+    "weekday": "Mercredi",
+    "month": "Avril",
+    "day": 8,
+    "days_left": 54
+  },
+  {
+    "iso": "2026-04-09",
+    "label": "09/04/2026",
+    "weekday": "Jeudi",
+    "month": "Avril",
+    "day": 9,
+    "days_left": 53
+  },
+  {
+    "iso": "2026-04-10",
+    "label": "10/04/2026",
+    "weekday": "Vendredi",
+    "month": "Avril",
+    "day": 10,
+    "days_left": 52
+  },
+  {
+    "iso": "2026-04-11",
+    "label": "11/04/2026",
+    "weekday": "Samedi",
+    "month": "Avril",
+    "day": 11,
+    "days_left": 51
+  },
+  {
+    "iso": "2026-04-12",
+    "label": "12/04/2026",
+    "weekday": "Dimanche",
+    "month": "Avril",
+    "day": 12,
+    "days_left": 50
+  },
+  {
+    "iso": "2026-04-13",
+    "label": "13/04/2026",
+    "weekday": "Lundi",
+    "month": "Avril",
+    "day": 13,
+    "days_left": 49
+  },
+  {
+    "iso": "2026-04-14",
+    "label": "14/04/2026",
+    "weekday": "Mardi",
+    "month": "Avril",
+    "day": 14,
+    "days_left": 48
+  },
+  {
+    "iso": "2026-04-15",
+    "label": "15/04/2026",
+    "weekday": "Mercredi",
+    "month": "Avril",
+    "day": 15,
+    "days_left": 47
+  },
+  {
+    "iso": "2026-04-16",
+    "label": "16/04/2026",
+    "weekday": "Jeudi",
+    "month": "Avril",
+    "day": 16,
+    "days_left": 46
+  },
+  {
+    "iso": "2026-04-17",
+    "label": "17/04/2026",
+    "weekday": "Vendredi",
+    "month": "Avril",
+    "day": 17,
+    "days_left": 45
+  },
+  {
+    "iso": "2026-04-18",
+    "label": "18/04/2026",
+    "weekday": "Samedi",
+    "month": "Avril",
+    "day": 18,
+    "days_left": 44
+  },
+  {
+    "iso": "2026-04-19",
+    "label": "19/04/2026",
+    "weekday": "Dimanche",
+    "month": "Avril",
+    "day": 19,
+    "days_left": 43
+  },
+  {
+    "iso": "2026-04-20",
+    "label": "20/04/2026",
+    "weekday": "Lundi",
+    "month": "Avril",
+    "day": 20,
+    "days_left": 42
+  },
+  {
+    "iso": "2026-04-21",
+    "label": "21/04/2026",
+    "weekday": "Mardi",
+    "month": "Avril",
+    "day": 21,
+    "days_left": 41
+  },
+  {
+    "iso": "2026-04-22",
+    "label": "22/04/2026",
+    "weekday": "Mercredi",
+    "month": "Avril",
+    "day": 22,
+    "days_left": 40
+  },
+  {
+    "iso": "2026-04-23",
+    "label": "23/04/2026",
+    "weekday": "Jeudi",
+    "month": "Avril",
+    "day": 23,
+    "days_left": 39
+  },
+  {
+    "iso": "2026-04-24",
+    "label": "24/04/2026",
+    "weekday": "Vendredi",
+    "month": "Avril",
+    "day": 24,
+    "days_left": 38
+  },
+  {
+    "iso": "2026-04-25",
+    "label": "25/04/2026",
+    "weekday": "Samedi",
+    "month": "Avril",
+    "day": 25,
+    "days_left": 37
+  },
+  {
+    "iso": "2026-04-26",
+    "label": "26/04/2026",
+    "weekday": "Dimanche",
+    "month": "Avril",
+    "day": 26,
+    "days_left": 36
+  },
+  {
+    "iso": "2026-04-27",
+    "label": "27/04/2026",
+    "weekday": "Lundi",
+    "month": "Avril",
+    "day": 27,
+    "days_left": 35
+  },
+  {
+    "iso": "2026-04-28",
+    "label": "28/04/2026",
+    "weekday": "Mardi",
+    "month": "Avril",
+    "day": 28,
+    "days_left": 34
+  },
+  {
+    "iso": "2026-04-29",
+    "label": "29/04/2026",
+    "weekday": "Mercredi",
+    "month": "Avril",
+    "day": 29,
+    "days_left": 33
+  },
+  {
+    "iso": "2026-04-30",
+    "label": "30/04/2026",
+    "weekday": "Jeudi",
+    "month": "Avril",
+    "day": 30,
+    "days_left": 32
+  },
+  {
+    "iso": "2026-05-01",
+    "label": "01/05/2026",
+    "weekday": "Vendredi",
+    "month": "Mai",
+    "day": 1,
+    "days_left": 31
+  },
+  {
+    "iso": "2026-05-02",
+    "label": "02/05/2026",
+    "weekday": "Samedi",
+    "month": "Mai",
+    "day": 2,
+    "days_left": 30
+  },
+  {
+    "iso": "2026-05-03",
+    "label": "03/05/2026",
+    "weekday": "Dimanche",
+    "month": "Mai",
+    "day": 3,
+    "days_left": 29
+  },
+  {
+    "iso": "2026-05-04",
+    "label": "04/05/2026",
+    "weekday": "Lundi",
+    "month": "Mai",
+    "day": 4,
+    "days_left": 28
+  },
+  {
+    "iso": "2026-05-05",
+    "label": "05/05/2026",
+    "weekday": "Mardi",
+    "month": "Mai",
+    "day": 5,
+    "days_left": 27
+  },
+  {
+    "iso": "2026-05-06",
+    "label": "06/05/2026",
+    "weekday": "Mercredi",
+    "month": "Mai",
+    "day": 6,
+    "days_left": 26
+  },
+  {
+    "iso": "2026-05-07",
+    "label": "07/05/2026",
+    "weekday": "Jeudi",
+    "month": "Mai",
+    "day": 7,
+    "days_left": 25
+  },
+  {
+    "iso": "2026-05-08",
+    "label": "08/05/2026",
+    "weekday": "Vendredi",
+    "month": "Mai",
+    "day": 8,
+    "days_left": 24
+  },
+  {
+    "iso": "2026-05-09",
+    "label": "09/05/2026",
+    "weekday": "Samedi",
+    "month": "Mai",
+    "day": 9,
+    "days_left": 23
+  },
+  {
+    "iso": "2026-05-10",
+    "label": "10/05/2026",
+    "weekday": "Dimanche",
+    "month": "Mai",
+    "day": 10,
+    "days_left": 22
+  },
+  {
+    "iso": "2026-05-11",
+    "label": "11/05/2026",
+    "weekday": "Lundi",
+    "month": "Mai",
+    "day": 11,
+    "days_left": 21
+  },
+  {
+    "iso": "2026-05-12",
+    "label": "12/05/2026",
+    "weekday": "Mardi",
+    "month": "Mai",
+    "day": 12,
+    "days_left": 20
+  },
+  {
+    "iso": "2026-05-13",
+    "label": "13/05/2026",
+    "weekday": "Mercredi",
+    "month": "Mai",
+    "day": 13,
+    "days_left": 19
+  },
+  {
+    "iso": "2026-05-14",
+    "label": "14/05/2026",
+    "weekday": "Jeudi",
+    "month": "Mai",
+    "day": 14,
+    "days_left": 18
+  },
+  {
+    "iso": "2026-05-15",
+    "label": "15/05/2026",
+    "weekday": "Vendredi",
+    "month": "Mai",
+    "day": 15,
+    "days_left": 17
+  },
+  {
+    "iso": "2026-05-16",
+    "label": "16/05/2026",
+    "weekday": "Samedi",
+    "month": "Mai",
+    "day": 16,
+    "days_left": 16
+  },
+  {
+    "iso": "2026-05-17",
+    "label": "17/05/2026",
+    "weekday": "Dimanche",
+    "month": "Mai",
+    "day": 17,
+    "days_left": 15
+  },
+  {
+    "iso": "2026-05-18",
+    "label": "18/05/2026",
+    "weekday": "Lundi",
+    "month": "Mai",
+    "day": 18,
+    "days_left": 14
+  },
+  {
+    "iso": "2026-05-19",
+    "label": "19/05/2026",
+    "weekday": "Mardi",
+    "month": "Mai",
+    "day": 19,
+    "days_left": 13
+  },
+  {
+    "iso": "2026-05-20",
+    "label": "20/05/2026",
+    "weekday": "Mercredi",
+    "month": "Mai",
+    "day": 20,
+    "days_left": 12
+  },
+  {
+    "iso": "2026-05-21",
+    "label": "21/05/2026",
+    "weekday": "Jeudi",
+    "month": "Mai",
+    "day": 21,
+    "days_left": 11
+  },
+  {
+    "iso": "2026-05-22",
+    "label": "22/05/2026",
+    "weekday": "Vendredi",
+    "month": "Mai",
+    "day": 22,
+    "days_left": 10
+  },
+  {
+    "iso": "2026-05-23",
+    "label": "23/05/2026",
+    "weekday": "Samedi",
+    "month": "Mai",
+    "day": 23,
+    "days_left": 9
+  },
+  {
+    "iso": "2026-05-24",
+    "label": "24/05/2026",
+    "weekday": "Dimanche",
+    "month": "Mai",
+    "day": 24,
+    "days_left": 8
+  },
+  {
+    "iso": "2026-05-25",
+    "label": "25/05/2026",
+    "weekday": "Lundi",
+    "month": "Mai",
+    "day": 25,
+    "days_left": 7
+  },
+  {
+    "iso": "2026-05-26",
+    "label": "26/05/2026",
+    "weekday": "Mardi",
+    "month": "Mai",
+    "day": 26,
+    "days_left": 6
+  },
+  {
+    "iso": "2026-05-27",
+    "label": "27/05/2026",
+    "weekday": "Mercredi",
+    "month": "Mai",
+    "day": 27,
+    "days_left": 5
+  },
+  {
+    "iso": "2026-05-28",
+    "label": "28/05/2026",
+    "weekday": "Jeudi",
+    "month": "Mai",
+    "day": 28,
+    "days_left": 4
+  },
+  {
+    "iso": "2026-05-29",
+    "label": "29/05/2026",
+    "weekday": "Vendredi",
+    "month": "Mai",
+    "day": 29,
+    "days_left": 3
+  },
+  {
+    "iso": "2026-05-30",
+    "label": "30/05/2026",
+    "weekday": "Samedi",
+    "month": "Mai",
+    "day": 30,
+    "days_left": 2
+  },
+  {
+    "iso": "2026-05-31",
+    "label": "31/05/2026",
+    "weekday": "Dimanche",
+    "month": "Mai",
+    "day": 31,
+    "days_left": 1
+  }
+];
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
