@@ -7,7 +7,9 @@ const daysGrid = document.getElementById("daysGrid");
 const template = document.getElementById("dayCardTemplate");
 const doneCountEl = document.getElementById("doneCount");
 const remainingCountEl = document.getElementById("remainingCount");
+const remainingWeeksEl = document.getElementById("remainingWeeks");
 const daysUntilExamEl = document.getElementById("daysUntilExam");
+const weeksUntilExamEl = document.getElementById("weeksUntilExam");
 const progressFillEl = document.getElementById("progressFill");
 const progressTextEl = document.getElementById("progressText");
 const searchInput = document.getElementById("searchInput");
@@ -40,6 +42,7 @@ function loadState() {
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   updateTopSummary();
+  updateCountdown();
 }
 
 function getEntry(iso) {
@@ -146,7 +149,7 @@ function applyFilters() {
 
     const matchesSearch = !search || textBlob.includes(search);
     const matchesFilter =
-      activeFilter === "all" ||
+      (activeFilter === "all" && !entry.done) ||
       (activeFilter === "done" && entry.done) ||
       (activeFilter === "pending" && !entry.done);
 
@@ -159,10 +162,12 @@ function updateTopSummary() {
   const doneCount = entries.filter((entry) => entry.done).length;
   const total = DAYS.length;
   const remaining = total - doneCount;
+  const remainingWeeks = Math.ceil(remaining / 7);
   const percent = Math.round((doneCount / total) * 100);
 
   doneCountEl.textContent = doneCount;
   remainingCountEl.textContent = remaining;
+  remainingWeeksEl.textContent = remainingWeeks;
   progressFillEl.style.width = `${percent}%`;
   progressTextEl.textContent = `${percent}% complété`;
 }
@@ -171,13 +176,18 @@ function updateCountdown() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diff = Math.ceil((EXAM_DATE - today) / (1000 * 60 * 60 * 24));
+  const weeks = diff > 0 ? Math.ceil(diff / 7) : 0;
+  daysUntilExamEl.style.fontSize = "";
 
   if (diff > 0) {
     daysUntilExamEl.textContent = diff;
+    weeksUntilExamEl.textContent = weeks;
   } else if (diff === 0) {
     daysUntilExamEl.textContent = "0";
+    weeksUntilExamEl.textContent = "0";
   } else {
     daysUntilExamEl.textContent = "Examens commencés";
     daysUntilExamEl.style.fontSize = "2rem";
+    weeksUntilExamEl.textContent = "0";
   }
 }
